@@ -191,6 +191,7 @@ func (w *Context) OnLeader(f func(ctx context.Context) error) {
 
 func (w *Context) StartWithTransaction(ctx context.Context, f func(context.Context) error) (err error) {
 	transaction := controller.NewHandlerTransaction(ctx)
+
 	if err := f(transaction); err != nil {
 		transaction.Rollback()
 		return err
@@ -203,6 +204,7 @@ func (w *Context) StartWithTransaction(ctx context.Context, f func(context.Conte
 	}
 
 	w.ControllerFactory.SharedCacheFactory().WaitForCacheSync(ctx)
+
 	transaction.Commit()
 	return w.Start(ctx)
 }
@@ -492,7 +494,12 @@ func NewContext(ctx context.Context, clientConfig clientcmd.ClientConfig, restCo
 func InitExtAPI(context *Context, ext extv1.Interface) {
 	context.extLock.Lock()
 	defer context.extLock.Unlock()
+
+	fmt.Printf("ZZZZZ XX w(%p) inject / late init -- %T (%p)\n", context, ext, ext)
+
 	context.Ext = ext
+
+	fmt.Printf("ZZZZZ XX w(%p) injected\n", context)
 }
 
 // GetExtAPI safely retrieves the Ext API component of the context. Access to

@@ -43,6 +43,8 @@ type tokenHandler struct {
 // ExtCreate is called when a given ext token is created, and is responsible for
 // updating/creating the ClusterAuthToken in a downstream cluster.
 func (h *tokenHandler) ExtCreate(token *extv1.Token) (*extv1.Token, error) {
+	fmt.Printf("ZZZZZ A ETOKEN lifecycle CREATE /%s/\n", token.Name)
+
 	_, err := h.clusterAuthTokenLister.Get(h.namespace, token.Name)
 	if !errors.IsNotFound(err) {
 		return h.ExtUpdated(token)
@@ -70,6 +72,8 @@ func (h *tokenHandler) ExtCreate(token *extv1.Token) (*extv1.Token, error) {
 // ExtUpdated is called when a given ext token is modified, and is responsible
 // for updating/creating the ClusterAuthToken in a downstream cluster.
 func (h *tokenHandler) ExtUpdated(token *extv1.Token) (*extv1.Token, error) {
+	fmt.Printf("ZZZZZ A ETOKEN lifecycle UPDATED n(%s) /%s/\n", h.namespace, token.Name)
+
 	clusterAuthToken, err := h.clusterAuthTokenLister.Get(h.namespace, token.Name)
 	if errors.IsNotFound(err) {
 		return h.ExtCreate(token)
@@ -130,11 +134,15 @@ func (h *tokenHandler) ExtUpdated(token *extv1.Token) (*extv1.Token, error) {
 // ExtRemove is called when a given ext token is delete, and is responsible for
 // removing the ClusterAuthToken in a downstream cluster.
 func (h *tokenHandler) ExtRemove(token *extv1.Token) (*extv1.Token, error) {
+	fmt.Printf("ZZZZZ A ETOKEN lifecycle REMOVE /%s/\n", token.Name)
 	return nil, h.remove(token.GetName(), token.GetUserID(), extTokenUserClusterKey(token))
 }
 
 // Create is called when a given token is created, and is responsible for creating a ClusterAuthToken in a downstream cluster.
 func (h *tokenHandler) Create(token *managementv3.Token) (runtime.Object, error) {
+
+	fmt.Printf("ZZZZZ TOKEN CREATE (%s|%s)\n", token.Name, token.ClusterName)
+
 	_, err := h.clusterAuthTokenLister.Get(h.namespace, token.Name)
 	if !errors.IsNotFound(err) {
 		return h.Updated(token)
@@ -189,6 +197,9 @@ func (h *tokenHandler) createClusterAuthToken(token accessor.TokenAccessor, hash
 // Updated is called when a token is updated, and is responsible for creating/updating the corresponding
 // ClusterAuthTokens in the downstream cluster.
 func (h *tokenHandler) Updated(token *managementv3.Token) (runtime.Object, error) {
+
+	fmt.Printf("ZZZZZ TOKEN UPDATE (%s|%s)\n", token.Name, token.ClusterName)
+
 	clusterAuthToken, err := h.clusterAuthTokenLister.Get(h.namespace, token.Name)
 	if errors.IsNotFound(err) {
 		return h.Create(token)
@@ -249,6 +260,7 @@ func (h *tokenHandler) Updated(token *managementv3.Token) (runtime.Object, error
 }
 
 func (h *tokenHandler) Remove(token *managementv3.Token) (runtime.Object, error) {
+	fmt.Printf("ZZZZZ TOKEN REMOVE (%s|%s)\n", token.Name, token.ClusterName)
 	return nil, h.remove(token.GetName(), token.GetUserID(), tokenUserClusterKey(token))
 }
 
